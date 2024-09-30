@@ -1,0 +1,9 @@
+*~
+*.bak
+\#*\#
+*OLD
+UNUSED*
+HIDE*
+out/*
+module.ini
+lang/ext/*.php

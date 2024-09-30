@@ -1,0 +1,50 @@
+Tabbed user interface like other modules
+No 'brief' view/tab
+Reconciliation by item id, not item name (which may be changed)
+Restoration in accord with item locking (per content manager etc)
+Filtering like corresponding content-editing etc plus by revision date
+Option to display only a single version of items (presumably the most-recently-recorded)
+Content searching
+Versions-diff action/view c.f. git logging etc
+Manual delete selected items (prob with extra permission)
+Manual delete all by type
+Manual delete all by filter
+
+unserialize class-limit params
+checkboxes per row
+content preview c.f. content manager
+custom css
+post-setting change content cleanup
+rename permission
+super permission
+stylesheet processing
+Revisions module reconciliation
+
+UI
+CONTENT
+no tabs
+couple settings link (incl filtering) with ops 16px
+separate menu for main settings
+With selected dropdown + submit, enabled per checkboxes
+delete icon/link where relevant
+locked col @left, warning.gif systemicon link to clear lock 
+polls to refresh
+
+DM
+tabs
+filter link where relevant 16px old icon
+With selected dropdown + submit, enabled per checkboxes, on relevant tabs
+backup c.f. actions copy_css, copy_tpl
+locked col @left, warning.gif systemicon link to clear lock 
+polls to refresh
+separate menu for settings
+
+FILES
+no tabs
+button-bar, individual buttons enabled per checkboxes
+sort indicator post-title (special char in link text), per sorted/able status
+separate menu for settings
+
+USERGUIDE
+tabs (Guides, Settings etc)
+Settings tab has save, cancel

@@ -1,0 +1,18 @@
+.navicon {
+    width: 1em;
+    height: 1em;
+    border: none;
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+    vertical-align: middle
+}
+.advice {
+    display: inline-block;
+    width: auto;
+    margin: .625em 0;
+    padding: .375em .625em;
+    border: 1px solid #058dc7;
+    border-radius: .2rem;
+    background: #cee6f2;
+    color: #058dc7
+}
