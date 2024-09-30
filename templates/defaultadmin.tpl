@@ -1,9 +1,9 @@
 {$admin_nav}
 <h3>{$mod->Lang('items')}</h3>
 {if !empty($message)}<br><p>{$message}</p>{/if}
-{if $itemcount > 0}
 {if $page_no}<table class="pagetable" style="border-spacing:0"><tr><td>{$prev_page}</td><td>{$page_no}</td><td>{$next_page}</td></tr></table>{/if}
-{if !$hide_filters}<table class="pagetable" style="border-spacing:0"><tr><td>{$startform}{$hidden}{$title_filter_type}{$input_filter_type}{$submit}{$endform}</td></tr></table>{/if}
+{if !$hide_filters}<table class="pagetable" style="border-spacing:0"><tr><td>{$startform}{$hidden}{$title_filter_type}{$input_filter_type}{*$submit*}{$endform}</td></tr></table>{/if}
+{if $itemcount > 0}
 <table class="pagetable" style="border-spacing:0">
 	<thead>
 		<tr>
