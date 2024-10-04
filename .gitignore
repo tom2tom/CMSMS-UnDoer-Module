@@ -5,5 +5,5 @@
 UNUSED*
 HIDE*
 out/*
-module.ini
+module*.ini
 lang/ext/*.php
