@@ -11,23 +11,20 @@ if (!$this->CheckPermission('Modify Modules')) exit;
 if (!class_exists('CMSModule')) return false;
 
 $dict = NewDataDictionary($db);
-//$sqlarray = $dict->DropTableSQL(CMS_DB_PREFIX.'module_restorer_item');
-//$dict->ExecuteSQLArray($sqlarray);
-//$sqlarray = $dict->DropTableSQL(CMS_DB_PREFIX.'module_undoer');
+
 $sqlarray = $dict->DropTableSQL(CMS_DB_PREFIX.'module_undoer');
 $dict->ExecuteSQLArray($sqlarray);
 
-//$db->DropSequence(CMS_DB_PREFIX.'module_restorer_seq');
-
-//these should be audit-type-preferences-specific
-$this->RemoveEventHandler('Core', 'ContentEditPost');
-$this->RemoveEventHandler('Core', 'ContentEditPre');
-$this->RemoveEventHandler('Core', 'AddTemplatePost');
-$this->RemoveEventHandler('Core', 'EditTemplatePre');
-$this->RemoveEventHandler('Core', 'EditStylesheetPre');
-$this->RemoveEventHandler('Core', 'AddStylesheetPost');
+//$this->RemoveEventHandler('Core', 'ContentEditPost');
+//$this->RemoveEventHandler('Core', 'AddTemplatePost');
+//$this->RemoveEventHandler('Core', 'AddStylesheetPost');
+//possibly (per preferences)
+if (1) $this->RemoveEventHandler('Core', 'ContentEditPre');
+if (1) $this->RemoveEventHandler('Core', 'EditTemplatePre');
+if (1) $this->RemoveEventHandler('Core', 'EditStylesheetPre');
 
 $this->RemovePermission('Manage Restores');
+$this->RemovePermission('Delete Restores');
 
 $this->RemovePreference();
 

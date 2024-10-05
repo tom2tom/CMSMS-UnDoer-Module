@@ -4,7 +4,7 @@
     border: none;
     padding-left: 0.25em;
     padding-right: 0.25em;
-    vertical-align: middle
+    vertical-align: middle;
 }
 .advice {
     display: inline-block;
@@ -14,5 +14,50 @@
     border: 1px solid #058dc7;
     border-radius: .2rem;
     background: #cee6f2;
-    color: #058dc7
+    color: #058dc7;
+}
+
+#sel_all {
+    vertical-align: middle;
+}
+
+#revisions {
+    border-spacing: 0;
+}
+#revisions th a,
+#revisions th.active a,
+#revisions th a:hover,
+#revisions th a:visited {
+    color: #fa8004; /* TODO inherit from same-place non-anchor */
+    text-decoration: none;
+}
+
+#bulkelements,
+#filterelements {
+    display: flex;
+    align-items: center;
+/*  border: 1px solid #aaa; / * TODO inherit from somewhere */
+/*  border-radius: 3px;*/
+    padding: 3px;
+}
+#bulkelements {
+    justify-content: flex-end;
+}
+#filterelements {
+    justify-content: flex-start;
+}
+#bulkelements > *,
+#filterelements > form > * {
+    margin: 0 0.35em 0 0.35em;
+}
+
+#rawcontent {
+    margin: 1em 0.5em;
+    max-height: calc(100vh - 5em);
+    overflow: auto;
+}
+
+#previewframe, 
+iframe.preview {
+    height: calc(100vh - 5em);
 }

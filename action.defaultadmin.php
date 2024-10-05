@@ -15,18 +15,12 @@ $theme = cms_utils::get_theme_object();
 $entryarray = [];
 $total = 0;
 $step = 25;
+
 if (empty($params['start'])) {
     $params['start'] = 0;
 }
 if (!isset($params['item_id'])) {
     $params['item_id'] = -1;
-}
-if (!isset($params['preview'])) {
-    $params['preview'] = false;
-    $tpl->assign('preview', 0);
-} else {
-    $params['preview'] = true;
-    $tpl->assign('preview', 1);
 }
 if (!isset($params['sort_order'])) {
     if ($params['item_id'] == -1) {
@@ -35,10 +29,10 @@ if (!isset($params['sort_order'])) {
         $params['sort_order'] = 'date';
     }
 }
-
 if (!isset($params['sort_dir'])) {
     $params['sort_dir'] = 'ASC';
 }
+
 $query = 'SELECT COUNT(*) AS total FROM '.CMS_DB_PREFIX.'module_undoer';
 $restriction = [];
 $whereClause = '';
@@ -95,8 +89,8 @@ if ($params['item_id'] != -1) {
     $tpl->assign('hide_filters', 0);
 }
 
-$dateIcon = '<img src="'.$this->GetModuleURLPath().'/images/sort_asc.png" class="systemicon" alt="'.
-    $this->Lang('sort_asc') . '" title="'. $this->Lang('sort_asc') . '">';
+$dateIcon = '<img src="'.$this->GetModuleURLPath().'/images/sortable.png" class="systemicon" alt="'.
+    $this->Lang('sort_able') . '" title="'. $this->Lang('tip_sort_asc') . '">';
 $nameIcon = $dateIcon;
 $revIcon = $dateIcon;
 $typeIcon = $dateIcon;
@@ -116,9 +110,12 @@ switch ($params['sort_order']) {
         if ($params['sort_dir'] == 'DESC') {
             $dateIcon = '<img src="'.$this->GetModuleURLPath().
                 '/images/sort_desc.png" class="systemicon" alt="'. $this->Lang('sort_desc') .
-                '" title="'.$this->Lang('sort_desc').'">';
+                '" title="'.$this->Lang('tip_sort_asc').'">';
             $dateSortDir = 'ASC';
         } else {
+            $dateIcon = '<img src="'.$this->GetModuleURLPath().
+                '/images/sort_asc.png" class="systemicon" alt="'. $this->Lang('sort_asc') .
+                '" title="'.$this->Lang('tip_sort_desc').'">';
             $dateSortDir = 'DESC';
         }
         break;
@@ -128,9 +125,12 @@ switch ($params['sort_order']) {
         if ($params['sort_dir'] == 'DESC') {
             $nameIcon = '<img src="'. $this->GetModuleURLPath().
                 '/images/sort_desc.png" class="systemicon" alt="'.$this->Lang('sort_desc') .
-                '" title="'.$this->Lang('sort_desc').'">';
+                '" title="'.$this->Lang('tip_sort_asc').'">';
             $nameSortDir = 'ASC';
         } else {
+            $nameIcon = '<img src="'. $this->GetModuleURLPath().
+                '/images/sort_asc.png" class="systemicon" alt="'.$this->Lang('sort_asc') .
+                '" title="'.$this->Lang('tip_sort_desc').'">';
             $nameSortDir = 'DESC';
         }
         break;
@@ -140,9 +140,12 @@ switch ($params['sort_order']) {
         if ($params['sort_dir'] == 'DESC') {
             $revIcon = '<img src="'.$this->GetModuleURLPath().
                 '/images/sort_desc.png" class="systemicon" alt="'.
-                $this->Lang('sort_desc').'" title="'.$this->Lang('sort_desc').'">';
+                $this->Lang('sort_desc').'" title="'.$this->Lang('tip_sort_asc').'">';
             $revSortDir = 'ASC';
         } else {
+            $revIcon = '<img src="'.$this->GetModuleURLPath().
+                '/images/sort_asc.png" class="systemicon" alt="'.
+                $this->Lang('sort_desc').'" title="'.$this->Lang('tip_sort_desc').'">';
             $revSortDir = 'DESC';
         }
         break;
@@ -155,14 +158,22 @@ switch ($params['sort_order']) {
                 $this->Lang('sort_desc').'" title="'.$this->Lang('sort_desc').'">';
             $typeSortDir = 'ASC';
         } else {
+            $typeIcon = '<img src="'.$this->GetModuleURLPath().
+                '/images/sort_asc.png" class="systemicon" alt="'.
+                $this->Lang('sort_asc').'" title="'.$this->Lang('tip_sort_desc').'">';
             $typeSortDir = 'DESC';
         }
 }
+
+$pdel = $this->CheckPermission('Delete Restores');
 
 $rs = $db->SelectLimit($query, $step, $params['start'], $restriction);
 if ($rs) {
     $rowclass = 'row1';
     $dateFmt = $this->GetPreference('date_format', 'l, j F Y H:i');
+    // escaped 'templates' with placeholders for replacement in js
+    $prompt = addcslashes($this->Lang('surerestore', '~!~', '|^|'), "'\n\r");
+    $prompt2 = addcslashes($this->Lang('suredelete', '|^|', '~!~'), "'\n\r");
 
     while ($row = $rs->FetchRow()) {
         $onerow = new stdClass();
@@ -180,26 +191,43 @@ if ($rs) {
             '<img src="'.
             $this->GetModuleURLPath().'/images/restore.png" class="systemicon" alt="'.
             $this->Lang('restore') . '" title="'. $this->Lang('restore') . '">',
-            ['id' => $row['id'], 'start' => $params['start'],
-            'type_filter' => $params['type_filter'], 'type_id' => $row['item_type'], 'sort_order' => $params['sort_order'],
-            'item_id' => $row['item_id'], 'revision_number' => $row['revision_number']],
-            $this->Lang('surerestore', $row['revision_number'])
+            ['rev_id' => $row['id'], 'revision_number' => $row['revision_number'], //any param[id] gets ignored TODO
+            'start' => $params['start'], 'type_filter' => $params['type_filter'],
+            'type_id' => $row['item_type'], 'sort_order' => $params['sort_order'],
+            'item_id' => $row['item_id']],
+            '', false, false, 'class="reverter" data-name="'.addcslashes($row['item_name'], '"').'" data-rev="'.$row['revision_number'].'"'
         );
-        if ($row['item_type'] == UnDoer::TYPE_CONTENT) {
-            $onerow->viewlink = $this->CreateLink($id, 'preview', $returnid,
+
+        $onerow->viewlink = $this->CreateLink($id, 'preview', $returnid,
+            $theme->DisplayImage(
+                'icons/system/view.gif',
+                $this->Lang('preview'),
+                '',
+                '',
+                'systemicon'
+            ),
+            ['rev_id' => $row['id'], //'revision_number' => $row['revision_number'], //any param[id] gets ignored TODO
+             'start' => $params['start'], 'type_filter' => $params['type_filter'],
+             'type_id' => $row['item_type'], 'sort_order' => $params['sort_order'],
+             'item_id' => $row['item_id']
+            ]
+        );
+
+        if ($pdel) {
+            $onerow->dellink = $this->CreateLink($id, 'delete', $returnid,
                 $theme->DisplayImage(
-                    'icons/system/view.gif',
-                    $this->Lang('preview'),
+                    'icons/system/delete.gif',
+                    lang('delete'),
                     '',
                     '',
                     'systemicon'
                 ),
-                ['id' => $row['id'], 'start' => $params['start'], 'type_filter' => $params['type_filter'],
-                'type_id' => $row['item_type'], 'sort_order' => $params['sort_order'], 'item_id' => $row['item_id'],
-                'preview' => true, 'revision_number' => $row['revision_number']]
+                ['rev_id' => $row['id'],
+                'start' => $params['start'], 'type_filter' => $params['type_filter'], //pass-thru's
+                'type_id' => $row['item_type'], 'sort_order' => $params['sort_order']
+                ],
+                '', false, false, 'class="deleter" data-name="'.addcslashes($row['item_name'], '"').'" data-rev="'.$row['revision_number'].'"'
             );
-        } else {
-            $onerow->viewlink = '';
         }
         $entryarray[] = $onerow;
 
@@ -236,11 +264,12 @@ if (ceil($total / $step) > 1) {
             $linkstr .= $this->CreateLink($id, 'defaultadmin', $returnid, $thisPg, ['start' => $i, 'type_filter' => $params['type_filter'], 'sort_order' => $params['sort_order'], 'item_id' => $params['item_id']]);
         }
     }
-    $tpl->assign('page_no', 'Page '.$curpg.' of '.ceil($total / $step)); //TODO langify
+    $tpl->assign('page_no', $this->Lang('pageof', $curpg, ceil($total / $step))); //i.e. 'Page '.$curpg.' of '.ceil($total / $step);
     $tpl->assign('page_links', $linkstr);
 } else {
     $tpl->assign('page_no', '');
 }
+//TODO title attribute for each name element, matching the respective icon title l.e. current.., '', false, false, $addttext='title="TODO"'
 $tpl->assign('column_name', $this->CreateLink($id, 'defaultadmin', $returnid, $nameIcon.$this->Lang('column_name'), ['sort_order' => 'name', 'start' => $params['start'], 'type_filter' => $params['type_filter'], 'item_id' => $params['item_id'], 'sort_dir' => $nameSortDir]));
 $tpl->assign('column_type', $this->CreateLink($id, 'defaultadmin', $returnid, $typeIcon.$this->Lang('column_type'), ['sort_order' => 'type', 'start' => $params['start'], 'type_filter' => $params['type_filter'], 'item_id' => $params['item_id'], 'sort_dir' => $typeSortDir]));
 $tpl->assign('column_revision', $this->CreateLink($id, 'defaultadmin', $returnid, $revIcon.$this->Lang('column_revision'), ['sort_order' => 'revision', 'start' => $params['start'], 'type_filter' => $params['type_filter'], 'item_id' => $params['item_id'], 'sort_dir' => $revSortDir]));
@@ -251,7 +280,6 @@ $tpl->assign('title_filter_type', $this->Lang('title_filter_type'));
 $filters = [
     $this->Lang('title_filter_none') => -1,
     $this->Lang('title_filter_content') => UnDoer::TYPE_CONTENT,
-//  $this->Lang('title_filter_htmlblob') => UnDoer::TYPE_HTMLBLOB,
     $this->Lang('title_filter_stylesheet') => UnDoer::TYPE_STYLESHEET,
     $this->Lang('title_filter_template') => UnDoer::TYPE_TEMPLATE
 ];
@@ -262,20 +290,191 @@ $tpl->assign('input_filter_type',
         $filters,
         -1,
         $params['type_filter'],
-        "onchange='this.form.submit()';"
+        'onchange="this.form.submit();"'
     )
 );
-$tpl->assign('startform',
-    $this->CreateFormStart($id, 'defaultadmin', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order'], 'item_id' => $params['item_id']])
-);
-$tpl->assign('endform', $this->CreateFormEnd());
-$tpl->assign('submit', $this->CreateInputSubmit($id, 'submit', lang('filter'), 'data-ui-icon="ui-icon-gear"'));
 
-$tpl->assign('items', $entryarray);
-$tpl->assign('itemcount', count($entryarray));
+// escape strings for js
+$s1 = addcslashes($this->Lang('suredelete_multi'), "'\n\r");
+$s2 = addcslashes(lang('ok'), "'\n\r");
+$s3 = addcslashes(lang('cancel'), "'\n\r");
+$s4 = addcslashes($this->Lang('begin'), "'\n\r");
+$s5 = addcslashes($this->Lang('error_compare'), "'\n\r");
+
+$js = <<<EOS
+<script>
+  $(function() {
+    var lastClicked = null; // TODO OR -1
+    $('#bulksel, #bulksubmit').prop('disabled',true);
+    $('#sel_all').on('click',function() {
+      var v = $(this).is(':checked');
+      $('#bulksel, #bulksubmit').prop('disabled',!v);
+    }).cmsms_checkall();
+    $('.multiselect').on('click',function(e) {
+      var v = this.checked;
+      $('#bulksel, #bulksubmit').prop('disabled',!v);
+      if (e.shiftKey) {
+        if (lastClicked) { //TODO OR index > -1
+          var cbs = $('.multiselect').toArray();
+          var end = cbs.indexOf(lastClicked);
+          if (end !== -1) {
+            var start = cbs.indexOf(this);
+            var checks = cbs.slice(Math.min(start, end), Math.max(start, end) + 1);
+            $(checks).prop('checked',v).trigger('change');
+          }
+        }
+      }
+      lastClicked = this; //TODO OR array index of this
+    });
+    $('#bulk_form').on('submit',function(e) {
+      var v = $('#bulksel').val();
+      switch (v) {
+        case 'delete':
+          e.preventDefault();
+          cms_confirm('$s1').done(function() {
+           $('#bulk_form').off('submit').trigger('submit');
+          });
+          return false;
+/* cms_confirm() doesn't support warning-class for styling the prompt
+          $('#delete_confirm').dialog({
+           modal: true,
+           width: 'auto',
+           buttons: [
+            {
+             tabIndex: 1,
+             text: '$s3',
+             icon: 'ui-icon-close',
+             click: function() {
+              $(this).dialog('close');
+             }
+            },
+            {
+             tabIndex: 2,
+             text: '$s2',
+             icon: 'ui-icon-check',
+             click: function() {
+              $(this).dialog('close');
+              $('#bulk_form').off('submit').trigger('submit');
+             }
+            }
+           ]
+          });
+          return false;
+*/
+        case 'search':
+          e.preventDefault();
+          $('#search_details').dialog({
+           modal: true,
+           width: 'auto',
+           buttons: [
+            {
+             tabIndex: 3,
+             text: '$s3',
+             icon: 'ui-icon-close',
+             click: function() {
+               $(this).dialog('close');
+             }
+            },
+            {
+             tabIndex: 2,
+             text: '$s4',
+             icon: 'ui-icon-search',
+             click: function() {
+              var v = $('#target').val().trim();
+              if (v.length > 2) {
+               $(this).dialog('close');
+               $('#bulk_form').find('input[name="{$id}search_text"]').val(v);
+               $('#bulk_form').off('submit').trigger('submit');
+              } else {
+               var here = 1; //TODO indicate more text needed
+              }
+             }
+            }
+           ]
+          });
+          return false;
+        case 'compare':
+          var v = 0;
+          $('.multiselect').each(function() {
+            if (this.checked) {
+              if (++v >= 2) {
+                return;
+              }
+            }
+          });
+          e.preventDefault();
+          cms_alert('$s5');
+          return false;
+        break;
+      }
+    });
+    $('.reverter, .deleter').on('click',function(e) {
+      e.preventDefault();
+      var elm = $(e.currentTarget);
+      var p;
+      if (elm.hasClass('reverter')) {
+        p = '$prompt';
+      } else {
+        p = '$prompt2';
+      }
+      p = p.replace('~!~', elm.attr('data-name')).replace('|^|', elm.attr('data-rev'));
+      var _href = elm.attr('href');
+      cms_confirm(p).done(function() {
+        window.location.href = _href;
+      });
+      return false;
+    });
+  });
+</script>
+
+EOS;
+$cmsmsv3 = cmsversion_compare(CMS_VERSION, '2.900') >= 0;
+if ($cmsmsv3) {
+    add_bottom_content($js); // CMSMS 3 inject js at bottom
+}
+
+//TODO filter-form elements needed if ! hide_filters
+//$tpl->assign('endform', $this->CreateFormEnd());
+//auto submit on selector change $tpl->assign('filtersubmit', $this->CreateInputSubmit($id, 'submit', lang('filter'), 'data-ui-icon="ui-icon-gear"'));
+//TODO why was 'item_id' a parameter submitted with this form ? 'item_id' => $params['item_id'] ?
+$html = $this->CreateFormStart($id, 'bulkoperation', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order'], 'sort_dir' => $params['sort_dir'], 'search_text' => '']);
+$html2 = preg_replace('/id="\w+?"/', 'id="bulk_form"', $html);
+$tpl->assign('startbulkform', $html2);
+//TODO custom hidden inputs for form id="multi_delete" if different from above
+$html = $this->CreateFormStart($id, 'bulkoperation', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order']]);
+$html2 = preg_replace('/id="\w+?"/', 'id="multi_delete"', $html);
+$tpl->assign('startbulkform2', $html2);
+//TODO custom hidden inputs for form id="multi_search" if different from above
+$html2 = preg_replace('/id="\w+?"/', 'id="multi_search"', $html);
+$tpl->assign('startbulkform3', $html2);
 
 $message = (!empty($params['message'])) ? $params['message'] : '';
 $tpl->assign('message', $message);
+$tpl->assign('deleteprompt', $this->Lang('suredelete_multi'));
+$tpl->assign('searchtitle', $this->Lang('search_help'));
+
+$tpl->assign('items', $entryarray);
+$n = count($entryarray);
+$tpl->assign('itemcount', $n);
+$hide = ($n == 0 && !$restriction);
+$tpl->assign('hide_filters', $hide);
+if (!$hide) {
+    //TODO why was 'item_id' a parameter submitted with this form ? 'item_id' => $params['item_id']
+    $tpl->assign('startfilterform',
+        $this->CreateFormStart($id, 'defaultadmin', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order']])
+    );
+}
+
+$tpl->assign('pdel', $pdel);
+$bulkopts = [
+    'search' => $this->Lang('title_search'),
+    'compare' => $this->Lang('title_compare')
+];
+if ($pdel) {
+    $bulkopts['delete'] = lang('delete');
+}
+$tpl->assign('bulkslist', $bulkopts);
+
 $nav = $this->CreateLink($id, 'settings', $returnid, $theme->DisplayImage(
     'icons/topfiles/siteprefs.gif',
     $this->Lang('adminprefs'),
@@ -284,7 +483,9 @@ $nav = $this->CreateLink($id, 'settings', $returnid, $theme->DisplayImage(
     'navicon'
 ), []) .
 $this->CreateLink($id, 'settings', $returnid, $this->Lang('adminprefs'), [], '', false, false, 'class="pageoptions"');
-
 $smarty->assign('admin_nav', $nav);
 
 $tpl->display();
+if (!$cmsmsv3) {
+    echo $js;
+}

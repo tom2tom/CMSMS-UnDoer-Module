@@ -4,9 +4,13 @@ This file is part of CMS Made Simple module: UnDoer
 Copyright (C) 2024 CMS Made Simple Foundation Inc <foundation@cmsmadesimple.org>
 Refer to license and other details at the top of file UnDoer.module.php
 */
-// periodic cleanout of time-expired archive items
+// periodic cleanout of time-expired and/or excessive-count archive items
 namespace UnDoer;
 
+/*use CMSMS\Utils as cms_utils;
+use CMSMS\App as CmsApp;
+use CMSMS\TODO as CmsRegularTask;
+*/
 use cms_utils;
 use CmsApp;
 use CmsRegularTask;
@@ -30,8 +34,9 @@ class CleanOldTask implements CmsRegularTask
             $time = time();
         }
         $mod = cms_utils::get_module('UnDoer');
-        $lifedays = (int)$mod->GetPreference('purge_time', -1);
-        if ($lifedays == -1) {
+        $opt = (int)$mod->GetPreference('purge_time', -1);
+        $opt2 = (int)$mod->GetPreference('purge_count', -1);
+        if ($opt == -1 && $opt2 == -1) {
             return false;
         }
         $lastrun = (int) $mod->GetPreference('task1_lastrun');
@@ -56,30 +61,41 @@ class CleanOldTask implements CmsRegularTask
 
     public function execute($time = '')
     {
+        $res = true;
         $mod = cms_utils::get_module('UnDoer');
         $lifedays = (int)$mod->GetPreference('purge_time', -1);
-        if ($lifedays < 0) {
-            return false;
-        }
-        $cutoff = time() - $lifedays * 86400;
-        $purge_ids = [];
-        $db = CmsApp::get_instance()->GetDb();
-        // purge old
-        $query = 'SELECT id FROM '.CMS_DB_PREFIX.
-            'module_undoer WHERE archive_date<'.$db->DBTimeStamp($cutoff);
-        $rs = $db->Execute($query);
-        if ($rs) {
-            while ($row = $rs->FetchRow()) {
-                $purge_ids[] = $row['id'];
+        if ($lifedays > -1) {
+            $cutoff = time() - $lifedays * 86400;
+            $db = CmsApp::get_instance()->GetDb();
+            // purge old
+            $query = 'SELECT id FROM '.CMS_DB_PREFIX.
+                'module_undoer WHERE archive_date<'.$db->DBTimeStamp($cutoff);
+            $purge_ids = $db->getCol($query);
+            if ($purge_ids) {
+                $filler = str_repeat('?,', count($purge_ids) - 1);
+                $delquery = 'DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE id IN('.$filler.'?)';
+                $dbr = $db->execute($delquery, $purge_ids);
+                $res = $dbr != false;
             }
-            $rs->Close();
         }
-        if ($purge_ids) {
-            $filler = str_repeat('?,', count($purge_ids) - 1);
-            $delquery = 'DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE id IN('.$filler.'?)';
-            $dbr = $db->Execute($delquery, $purge_ids);
-            return $dbr != false;
+        $keepcount = (int)$mod->GetPreference('purge_count', -1);
+        if ($keepcount > -1) {
+            if (!isset($db)) { $db = CmsApp::get_instance()->GetDb(); }
+            // purge excess
+            $query = 'SELECT id FROM (
+SELECT id,item_id,revision_number,
+  ROW_NUMBER() OVER (PARTITION BY item_id ORDER BY revision_number DESC) AS row_num
+FROM '.CMS_DB_PREFIX.'module_undoer
+) ranked
+WHERE row_num > ?';
+            $purge_ids = $db->getCol($query, [$keepcount]);
+            if ($purge_ids) {
+                $filler = str_repeat('?,', count($purge_ids) - 1);
+                $delquery = 'DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE id IN('.$filler.'?)';
+                $dbr = $db->execute($delquery, $purge_ids);
+                $res = $dbr != false && $res;
+            }
         }
-        return true;
+        return $res;
     }
 }

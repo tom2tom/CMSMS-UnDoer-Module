@@ -5,6 +5,8 @@ Copyright (C) 2024 CMS Made Simple Foundation Inc <foundation@cmsmadesimple.org>
 Refer to license and other details at the top of file UnDoer.module.php
 */
 
+//use CMSMS\AppParams as cms_siteprefs;
+
 if (!defined('CMS_VERSION')) exit;
 if (!isset($gCms)) exit;
 if (!$this->CheckPermission('Modify Modules')) exit;
@@ -49,21 +51,22 @@ $dict->ExecuteSQLArray($sqlarray);
 $this->SetPreference('ArchiveContent', true);
 $this->SetPreference('ArchiveTemplates', true);
 $this->SetPreference('ArchiveStylesheets', true);
+//NOTE this pref value might be strftime() compatible, but this module expects date()
 $fmt = cms_siteprefs::get('defaultdateformat', 'l, j F Y H:i');
 $this->SetPreference('date_format', $fmt);
 $this->SetPreference('purge_count', -1); // unlimited
 $this->SetPreference('purge_time', -1); // never
 
 $this->CreatePermission('Manage Restores', 'Manage Restores');
+$this->CreatePermission('Delete Restores', 'Delete Restores'); // manual deletion
 
-//all 3 types of content are enabled
-$this->AddEventHandler('Core', 'ContentEditPost', false);
+//all 3 types of monitored revision are initially enabled
+//NOTE these events issue AFTER the item is edited, but before saving
 $this->AddEventHandler('Core', 'ContentEditPre', false);
-$this->AddEventHandler('Core', 'AddTemplatePost', false);
 $this->AddEventHandler('Core', 'EditTemplatePre', false);
 $this->AddEventHandler('Core', 'EditStylesheetPre', false);
-$this->AddEventHandler('Core', 'AddStylesheetPost', false);
-//$this->AddEventHandler('Core', 'EditGlobalContentPre', false);
-//$this->AddEventHandler('Core', 'AddGlobalContentPost', false);
+//$this->AddEventHandler('Core', 'ContentEditPost', false);
+//$this->AddEventHandler('Core', 'AddTemplatePost', false);
+//$this->AddEventHandler('Core', 'AddStylesheetPost', false);
 
 audit('', $this->Lang('friendlyname'), $this->Lang('installed', $this->GetVersion()));

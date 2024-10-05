@@ -3,6 +3,8 @@
 $lang['accessdenied'] = 'Access denied. Please check your permissions.';
 $lang['adminprefs'] = 'Settings'; //see also 'title_admin_prefs'
 
+$lang['begin'] = 'Begin'; // button label
+
 $lang['column_action'] = 'Operation';
 $lang['column_date'] = 'Date';
 $lang['column_name'] = 'Name';
@@ -11,61 +13,73 @@ $lang['column_type'] = 'Type';
 $lang['content'] = 'Page Content';
 
 $lang['date_format_help'] = 'Date formats are specified using PHP "date" format codes. For reference, please visit <a href="https://www.php.net/manual/en/datetime.format.php">the PHP website</a>. Remember to escape any characters you don\'t want interpreted as date format codes!<br />';
+$lang['desc_revision_search'] = 'Search for matching text in all revision-types';
 
 $lang['error'] = 'Error!';
+$lang['error_compare'] = 'Select more revisions.';
 $lang['error_invalid_info'] = 'Something went wrong. Trying to restore object of unknown type.';
+//$lang['error_search'] = 'Enter more text.';
+$lang['error_unspecified'] = 'Something went wrong. No detail is available.';
 
 $lang['friendlyname'] = 'Undo Changes';
-
-//$lang['htmlblob'] = 'Global Content Block';
 
 $lang['installed'] = 'Module version %s installed.';
 $lang['items'] = 'Revisions';
 
-//$lang['fulllist'] = 'Full List';
 //$lang['listsnapshots'] = 'Snapshots';
+$lang[ 'lbl_revision_search'] = 'Search Archived Revisions';
 
-$lang['moddescription'] = 'Archive and restore Content, Style Sheets and Templates.';
+$lang['moddescription'] = 'Archive and restore Content, Style Sheets and Templates';
 
 $lang['next'] = 'Next Page &gt;';
 $lang['no_revision'] = 'No revision is recorded.';
 
 $lang['page'] = 'Page';
+$lang['pageof'] = 'Page %s of %s';
+$lang['placeholder_search_text'] = 'Enter search text';
 $lang['postinstall'] = 'Be sure to tailor module settings, and grant "Restore" permission to users authorized to use this module!';
 $lang['postuninstall'] = 'Module removed';
 $lang['prefsupdated'] = 'Module preferences updated.';
 $lang['prev'] = '&lt; Previous Page';
+$lang['preview_notice'] = 'This preview behaves much like a browser window, allowing you to navigate away from the initially-displayed page';
 $lang['preview'] = 'Preview';
 $lang['purge_info2'] = 'Your retention choices take effect the next time you edit a page. Archives are affected only when their corresponding page is next edited (so if you previously had selected "Keep archives forever" and then changed to "Keep most recent five revisions", your database will retain all historical copies of every page until you edit a page. After that, the database will only have five previous revisions.';
 
 $lang['restore'] = 'Restore to current';
-$lang['restored_content'] = 'Restored page %s to revision %s';
-//$lang['restored_htmlblob'] = 'Restored Global Content Block %s to revision %s';
-$lang['restored_stylesheet'] = 'Restored stylesheet %s to revision %s';
-$lang['restored_template'] = 'Restored template %s to revision %s';
+$lang['restored_content'] = 'Restored page \'%s\' to revision %s';
+$lang['restored_stylesheet'] = 'Restored content of stylesheet \'%s\' to revision %s';
+$lang['restored_template'] = 'Restored content of template \'%s\' to revision %s';
 
-//$lang['simplelist'] = 'Summary List';
-$lang['sort_asc'] = 'Sort Ascending';
-$lang['sort_desc'] = 'Sort Descending';
+$lang['search_help'] = 'Enter 3+ characters to be used for fuzzy matching';
+$lang['sort_able'] = 'Sortable'; // for icon alt attribute
+$lang['sort_asc'] = 'Sorted Ascending';
+$lang['sort_desc'] = 'Sorted Descending';
 $lang['stylesheet'] = 'Stylesheet';
-$lang['surerestore'] = 'Are you sure you want to restore to revision %s?';
+$lang['suredelete_multi'] = 'Are you sure you want to delete the selected revision(s) ?';
+$lang['suredelete'] = 'Are you sure you want to delete preserved revision %s of \'%s\' ?'; //no js escape needed
+$lang['surerestore'] = 'Are you sure you want to restore \'%s\' to revision %s?'; //no escape need
 
 $lang['template'] = 'Template';
+$lang['tip_multiselect'] = 'Select this item for bulk revision operations';
+$lang['tip_selectall'] = 'Toggle selection of all visible items';
+$lang['tip_sort_asc'] = 'Click to sort ascending'; //for title attribute
+$lang['tip_sort_desc'] = 'Click to sort descending';
 $lang['title_admin_panel'] = 'Undo Changes';
 $lang['title_admin_prefs'] = 'Settings'; //see also 'adminprefs'
 //$lang['title_admin_snaps'] = 'Snapshot Management';
 $lang['title_archive_content'] = 'Keep Pages';
 $lang['title_archive_sheets'] = 'Keep Stylesheets';
 $lang['title_archive_tpls'] = 'Keep Templates';
+$lang['title_compare'] = 'Compare';
 $lang['title_date_format'] = 'Displayed Date/Times Format';
 $lang['title_filter_content'] = 'Only Content';
-//$lang['title_filter_htmlblob'] = 'Only Global Content Blocks';
-$lang['title_filter_none'] = 'All Archive Types';
+$lang['title_filter_none'] = 'All Types';
 $lang['title_filter_stylesheet'] = 'Only Stylesheets';
 $lang['title_filter_template'] = 'Only Templates';
 $lang['title_filter_type'] = 'Show ';
-$lang['title_mod_prefs'] = 'Module Preferences';
+//$lang['title_mod_prefs'] = 'Module Preferences';
 $lang['title_preview'] = 'Preview of revision %s';
+$lang['title_preview2'] = 'Archived Revision %s of %s \'%s\'';
 $lang['title_purge_10_revisions'] = 'Most recent ten';
 $lang['title_purge_14_days'] = 'Only from the last 14 days';
 $lang['title_purge_180_days'] = 'Only from the last 180 days';
@@ -83,6 +97,7 @@ $lang['title_purge_time'] = 'How long should revisions be kept?';
 $lang['title_purge_unlimited'] = 'All';
 $lang['title_purge_warning'] = 'Warning! If you select both a specific revision count and a specific revision lifetime, the <strong>more restrictive</strong> of those two values will prevail when the system decides whether or not to keep a revision.';
 //$lang['title_save_snapshot'] = 'Save a snapshot of your site';
+$lang['title_search'] = 'Search';
 //$lang['title_snapshot_name'] = 'Snapshot name';
 //$lang['title_snapshot_not_yet'] = 'Whole-site snapshots are not yet implemented.';
 
@@ -106,11 +121,19 @@ $lang['help'] = '<h3>What Does This Do?</h3>
 </ul>
 <h3>How Do I Use It</h3>
 <h4>General</h4>
-<p>After installation, the system will automatically start saving changes into the archives. You don\'t have to do anything special.</p>
+<p>After installation, the system will automatically start saving changes into archives. Nobody needs to do anything special.</p>
+<h4>Permissions</h4>
+<p>This module implements two specific permissions:</p>
+<ul>
+<li>Manage Restores</li>
+<li>Delete Restores</li>
+</ul>
+<p>To view and restore archives, users/groups must have Manage Restores permission.</p>
+<p>To manually remove archives, users/groups must have Delete Restores permission.</p>
 <h4>Expiration of Archives</h4>
-<p>Any admin user who has "Manage Restore" and "Manage Site Preferences" permissions may go into the archive admin, and set Archive expiration parameters. in the "Archive Settings" page. This should be self-explanatory. Keep in mind that the <strong>shorter</strong> of the expiration parameters you set will be used -- if you set "Keep Revisions Forever" in the time-based expiration, but only "keep the most recent 5 revisions" from the revision count expiration, you will only keep the five most recent.</p>
+<p>Any admin user who has "Manage Restores" and "Manage Site Preferences" permissions may go into the archive admin, and set Archive expiration parameters. in the "Archive Settings" page. This should be self-explanatory. Keep in mind that the <strong>shorter</strong> of the expiration parameters you set will be used -- if you set "Keep Revisions Forever" in the time-based expiration, but only "keep the most recent 5 revisions" from the revision count expiration, you will only keep the five most recent.</p>
 <h4>Restoring from Archives</h4>
-<p>Any admin user who has "Manage Restore" permission can view the revisions history. The listed archives can be sorted by name, type, date, or revision number.</p>
+<p>Any admin user who has "Manage Restores" permission can view the revisions history. The listed archives can be sorted by name, type, date, or revision number.</p>
 <p>Using the pulldown menu, you can filter to show only one type of archive object (Content, Template, or Stylesheet). Clicking on the item\'s name will take you to that object\'s history page. You can then preview the object (in the case of Content) by clicking on the preview icon.</p>
 <P>Restore an item by clicking on the "restore" icon on the far right. That\'s all there is to it!</p>
 <h3>Possible Improvements</h3>

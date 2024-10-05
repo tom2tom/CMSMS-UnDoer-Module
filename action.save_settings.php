@@ -30,17 +30,32 @@ if ($a1 != $b1) {
 	if ($a1 && !$b1 && $p1) {
 		$db->Execute('DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE item_type='.UnDoer::TYPE_CONTENT);
 	}
+	if ($b1) {
+		$this->AddEventHandler('Core', 'ContentEditPre', false);
+	} else {
+		$this->RemoveEventHandler('Core', 'ContentEditPre');
+	}
 }
 if ($a2 != $b2) {
 	$this->SetPreference('ArchiveTemplates', $b2);
 	if ($a2 && !$b2 && $p2) {
 		$db->Execute('DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE item_type='.UnDoer::TYPE_STYLESHEET);
 	}
+	if ($b2) {
+		$this->AddEventHandler('Core', 'EditTemplatePre', false);
+	} else {
+		$this->RemoveEventHandler('Core', 'EditTemplatePre');
+	}
 }
 if ($a3 != $b3) {
 	$this->SetPreference('ArchiveStylesheets', $b3);
 	if ($a3 && !$b3 && $p3) {
 		$db->Execute('DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE item_type='.UnDoer::TYPE_TEMPLATE);
+	}
+	if ($b3) {
+		$this->AddEventHandler('Core', 'EditStylesheetPre', false);
+	} else {
+		$this->RemoveEventHandler('Core', 'EditStylesheetPre');
 	}
 }
 
@@ -54,22 +69,31 @@ $d2 = isset($params['purge_time']) ? (int) $params['purge_time'] : -1; //> 0 = d
 
 if ($c1 != $d1) {
 	$this->SetPreference('purge_count', $d1);
-	if ($d1 > 0 && $d1 < $c1) {
-//TODO relevant type-specific permission(s) $p1 $p2 and/or $p3
-		$dbr = $db->GetCol('SELECT id FROM '.CMS_DB_PREFIX.'module_undoer
-GROUP BY item_id HAVING COUNT(item_id)<'.$d1);
-//		if ($dbr) {
-//			$db->Execute('DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE id IN('.implode(',',$dbr).')');
-//		}
-//TODO keep only latest $d1 for each item_id
-//		if ($dbr) {
-//			$db->Execute('DELETE ALL EXCEPT LATEST $d1 FROM EVERY GROUP IN '.CMS_DB_PREFIX.'module_undoer');
-//		}
+	if ($d1 > 0 && ($d1 < $c1 || $c1 == -1)) {
+		//c.f. Utils::PurgeArchive() without $objectID or $objectType
+		$query = 'SELECT id FROM (
+SELECT id,item_id,revision_number,
+  ROW_NUMBER() OVER (PARTITION BY item_id ORDER BY revision_number DESC) AS row_num
+FROM '.CMS_DB_PREFIX.'module_undoer
+) ranked
+WHERE row_num > ?';
+		$dbr = $db->getCol($query, [$d1]);
+		if ($dbr) {
+			$query = 'DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE id IN('.implode(',', $dbr).')';
+			if (!($p1 && $p2 && $p3)) {
+				$where = [];
+				if ($p1) { $where[] = 'item_type='.UnDoer::TYPE_CONTENT; }
+				if ($p2) { $where[] = 'item_type='.UnDoer::TYPE_STYLESHEET; }
+				if ($p3) { $where[] = 'item_type='.UnDoer::TYPE_TEMPLATE; }
+				$query .= ' AND ('. implode(' OR ', $where).')';
+			}
+			$db->execute($query);
+		}
 	}
 }
 if ($c2 != $d2) {
 	$this->SetPreference('purge_time', $d2);
-	if ($d2 > 0 && $d2 < $c2) {
+	if ($d2 > 0 && ($d2 < $c2 || $c2 == -1)) {
 		$cutoff = $db->DBTimeStamp(strtotime("today -{$d2} days"));
 		$query = 'DELETE FROM '.CMS_DB_PREFIX.'module_undoer WHERE archive_date < '.$cutoff;
 		if (!($p1 && $p2 && $p3)) {

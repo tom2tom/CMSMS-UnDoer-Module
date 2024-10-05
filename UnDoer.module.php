@@ -22,28 +22,34 @@ along with this program; if not, write to the Free Software
 Foundation Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 Or read it online at: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
+/*use CMSMS\Stylesheet as CmsLayoutStylesheet;
+use CMSMS\Template as CmsLayoutTemplate;
+*/
+
+//CMSMS3 uses
+//use CMSMS\CapabilityType as CmsCoreCapabilities;
+//use CMSMS\Template as CmsLayoutTemplate;
+//use CMSMS\Stylesheet as CmsLayoutStylesheet;
 use UnDoer\CleanOldTask;
 use UnDoer\Utils;
 
 class UnDoer extends CMSModule
 {
-    const TYPE_CONTENT = 1;
-//  const $TYPE_HTMLBLOB = 2;
+    const TYPE_CONTENT = 1; // 2 was redundant TYPE_HTMLBLOB
     const TYPE_STYLESHEET = 3;
     const TYPE_TEMPLATE = 4;
 
-    public $TYPE_NAMES;
+    public $TYPE_NAMES; // translated types
 
     public function __construct()
     {
         parent::__construct();
         $this->TYPE_NAMES = [
             self::TYPE_CONTENT => $this->Lang('content'),
-//          self::TYPE_HTMLBLOB => $this->Lang('htmlblob'),
             self::TYPE_STYLESHEET => $this->Lang('stylesheet'),
             self::TYPE_TEMPLATE => $this->Lang('template')
         ];
-        spl_autoload_register([$this, 'AutoLoader']);
+        spl_autoload_register([$this, 'AutoLoader']); //prob. redundant on CMSMS3
     }
 
     public function GetAdminDescription() { return $this->Lang('moddescription'); }
@@ -55,27 +61,28 @@ class UnDoer extends CMSModule
     public function GetFriendlyName() { return $this->Lang('friendlyname'); }
     public function GetHelp() { return $this->Lang('help'); }
     public function GetName() { return 'UnDoer'; }
-    public function GetVersion() { return '0.6'; }
+    public function GetVersion() { return '0.7'; }
     public function HandlesEvents() { return true; }
     public function HasAdmin() { return true; }
     public function InstallPostMessage() { return $this->Lang('postinstall'); }
 //  public function IsPluginModule() { return false; } default
 //  public function LazyLoadAdmin() { return false; }
 //  public function LazyLoadFrontend() { return false; }
-    public function MinimumCMSVersion() { return '2.2'; }
+    public function MinimumCMSVersion() { return '2.2.21F2'; }
     public function UninstallPostMessage() { return $this->Lang('postuninstall'); }
-    public function VisibleToAdminUser() { return $this->CheckPermission('Manage Restores'); }
+    public function VisibleToAdminUser() { return $this->CheckPermission('Manage Restores') || $this->CheckPermission('Delete Restores'); }
 
     public function GetHeaderHTML()
     {
         $baseurl = $this->GetModuleURLPath();
-        return "<link rel=\"stylesheet\" href=\"{$baseurl}/styles/module.css\">\n"; // or .min for production
+        return "<link rel=\"stylesheet\" href=\"{$baseurl}/styles/module.css\">\n"; // or .min for production or -rtl as appropriate
     }
 
     public function HasCapability($capability, $params = [])
     {
         switch ($capability) {
             case CmsCoreCapabilities::TASKS:
+            case CmsCoreCapabilities::ADMINSEARCH:
                 return true;
             default:
                 return false;
@@ -88,18 +95,11 @@ class UnDoer extends CMSModule
         return $out;
     }
 
-/*  public function DoAction($action, $id, $params, $returnid = '')
+    public function get_adminsearch_slaves()
     {
-        $this->TYPE_NAMES = [
-            self::TYPE_CONTENT => $this->Lang('content'),
-//          self::TYPE_HTMLBLOB => $this->Lang('htmlblob'),
-            self::TYPE_STYLESHEET => $this->Lang('stylesheet'),
-            self::TYPE_TEMPLATE => $this->Lang('template')
-        ];
-        $this->SetupAdminNav($action, $id, $params, $returnid);
-        return parent::DoAction($action, $id, $params, $returnid);
+        return ['\UnDoer\RevisionSearch_slave'];
     }
-*/
+
     public function CheckAccess($perm = 'Manage Restores')
     {
         if (!$this->CheckPermission($perm)) {
@@ -113,101 +113,103 @@ class UnDoer extends CMSModule
     {
         if ($originator == 'Core') {
             switch ($eventname) {
-                case 'ContentEditPost':
-                    $content = $params['content'];
-                    Utils::ArchiveObject($content, self::TYPE_CONTENT, true);
-                    break;
                 case 'ContentEditPre':
-                    $content = $params['content'];
-                    if ($content->Id() != -1) {
-                        Utils::ArchiveObject($content, self::TYPE_CONTENT);
+                    $content = $params['content']; // this is the post-edit, pre-save object
+                    // grab the pre-edit properties, if any
+                    $elmid = $content->Id();
+                    if ($elmid > 0) { // not a new-page object
+                        $ops = cmsms()->GetContentOperations();
+                        $current = $ops->LoadContentFromId($elmid, true, true); //force-load deep
+                        if ($current) {
+                            Utils::ArchiveObject($current, self::TYPE_CONTENT);
+                        } else {
+                            //TODO handle error
+                            //e.g. Utils::DisplayErrorPage($this->Lang('error_X')); return;
+                        }
                     }
                     break;
-                case 'AddTemplatePost':
-                    $template = $params['CmsLayoutTemplate'];
-                    Utils::ArchiveObject($template, self::TYPE_TEMPLATE);
+/*              case 'ContentEditPost':
+//                    $content = $params['content'];
+//$elmid = $content->Id();
+//                    Utils::ArchiveObject($content, self::TYPE_CONTENT, true);
+// TODO new-page processing here ? nothing here ? if so, abandon this handler
+                    $here = 1;
                     break;
+*/
                 case 'EditTemplatePre':
+                    $template = $params['CmsLayoutTemplate']; // the post-edit, pre-save object TODO CMSMS3 equivalent
+                    // grab the pre-edit properties, if any
+                    $elmid = $template->get_id();
+                    if ($elmid > 0) {
+                        $current = CmsLayoutTemplate::load($elmid, true); //force-load
+                        if ($current) {
+                            Utils::ArchiveObject($current, self::TYPE_TEMPLATE);
+                        } else {
+                            //TODO handle error
+                            //e.g. Utils::DisplayErrorPage($this->Lang('error_X')); return;
+                        }
+                    }
+                    break;
+/*              case 'AddTemplatePost':
                     $template = $params['CmsLayoutTemplate'];
-                    Utils::ArchiveObject($template, self::TYPE_TEMPLATE);
+                    // nothing here ?
+//                  $elmid = $template->Id(); //TODO use it
+//                  Utils::ArchiveObject($template, self::TYPE_TEMPLATE);
                     break;
+*/
                 case 'EditStylesheetPre':
+                    $stylesheet = $params['CmsLayoutStylesheet']; // the post-edit, pre-save object TODO CMSMS3 equivalent
+                    // grab the pre-edit properties, if any
+                    $elmid = $stylesheet->get_id();
+                    if ($elmid > 0) {
+                        $current = CmsLayoutStylesheet::load($elmid, true); //force-load
+                        if ($current) {
+                            Utils::ArchiveObject($current, self::TYPE_STYLESHEET);
+                        } else {
+                            //TODO handle error
+                            //e.g. Utils::DisplayErrorPage($this->Lang('error_X')); return;
+                        }
+                    }
+                    break;
+/*              case 'AddStylesheetPost':
                     $stylesheet = $params['CmsLayoutStylesheet'];
-                    Utils::ArchiveObject($stylesheet, self::TYPE_STYLESHEET);
-                    break;
-                case 'AddStylesheetPost':
-                    $stylesheet = $params['CmsLayoutStylesheet'];
-                    Utils::ArchiveObject($stylesheet, self::TYPE_STYLESHEET);
-                    break;
-/*             case 'EditGlobalContentPre':
-                    $global_content = $params['global_content'];
-                    Utils::ArchiveObject($global_content, self::TYPE_HTMLBLOB);
-                    break;
-                case 'AddGlobalContentPost':
-                    $global_content = $params['global_content'];
-                    Utils::ArchiveObject($global_content, self::TYPE_HTMLBLOB);
+                    // nothing here ?
+//                  $elmid = $stylesheet->Id(); //TODO use it
+//                  Utils::ArchiveObject($stylesheet, self::TYPE_STYLESHEET);
                     break;
 */
             }
         }
     }
-/*
-    protected function SetupAdminNav($action, $id, $params, $returnid)
+
+    /**
+     * Tailor the contents of $original for use as redirection parameters
+     *
+     * @param array $original normally the $params array supplied to an
+     *  action of this module
+     * @return array
+     */
+    public function FilterParms(array $original)//: array
     {
-        $theme = cms_utils::get_theme_object();
-        $smarty = cmsms()->GetSmarty();
-        $content = '';
-        if ($action != 'simplelist') {
-            $content =
-            $this->CreateLink($id, 'simplelist', $returnid,
-                '<img src="'.$this->GetModuleURLPath().'/images/simplelist.png" class="systemicon" style="padding-left:.25em;padding-right:.25em" alt="'. //TODO class also supporting "padding-left:.25em;padding-right:.25em;"
-                $this->Lang('simplelist').'" title="'.$this->Lang('simplelist').'">',
-                []
-            ) .
-            $this->CreateLink($id, 'simplelist', $returnid, $this->Lang('simplelist'), []);
+        $wanted = array_intersect_key(
+        [
+         CMS_SECURE_PARAM_NAME => '',
+//       'item_id' => -1,
+         'message' => '',
+         'start' => 0,
+         'sort_order' => 'name',
+         'sort_dir' => 'ASC',
+         'type_filter' => -1
+        ], $original);
+        if (empty($original['message'])) {
+            unset($wanted['message']);
         }
-        if ($action != 'fulllist') {
-            if ($content) {
-                $content .= ' : ';
-            }
-            $content .=
-            $this->CreateLink($id, 'fulllist', $returnid,
-                '<img src="'.$this->GetModuleURLPath().'/images/fulllist.png" class="systemicon" style="padding-left:.25em;padding-right:.25em" alt="'. //TODO class also supporting "padding-left:.25em;padding-right:.25em;"
-                $this->Lang('fulllist').'" title="'.$this->Lang('fulllist').'">',
-                []
-            ) .
-            $this->CreateLink($id, 'fulllist', $returnid, $this->Lang('fulllist'), []);
+        if (empty($original['CMS_SECURE_PARAM_NAME'])) {
+            unset($wanted['CMS_SECURE_PARAM_NAME']);
         }
-/*system-wide snapshots not implemented
-        if ($action != 'snapshots' && $this->CheckPermission('TODO') {
-            if ($content) {
-                $content .= ' : ';
-            }
-            $content .=
-            $this->CreateLink($id, 'listsnapshots', $returnid,
-                '<img src="'.$this->GetModuleURLPath().'/images/snapshot.png" class="systemicon" style="padding-left:.25em;padding-right:.25em" alt="'. //TODO class also supporting "padding-left:.25em;padding-right:.25em;"
-                $this->Lang('listsnapshots').'" title="'.$this->Lang('listsnapshots').'">',
-                []
-            ) .
-            $this->CreateLink($id, 'snapshots', $returnid, $this->Lang('listsnapshots'), []);
-* /
-        if ($action != 'settings' && $this->CheckPermission('Modify Site Preferences')) {
-            if ($content) {
-                $content .= ' : ';
-            }
-            $content .=
-            $this->CreateLink($id, 'settings', $returnid, $theme->DisplayImage(
-                'icons/topfiles/siteprefs.gif',
-                $this->Lang('adminprefs'),
-                '',
-                '',
-                'systemicon' //TODO class also supporting "padding-left:.25em;padding-right:.25em;"
-            ), []) .
-            $this->CreateLink($id, 'settings', $returnid, $this->Lang('adminprefs'), []);
-        }
-        $smarty->assign('admin_nav', $content);
+        return $wanted;
     }
-*/
+
     private function AutoLoader($classname)
     {
         if (($p = strpos($classname, 'UnDoer\\')) === 0 || ($p == 1 && $classname[0] == '\\')) {
