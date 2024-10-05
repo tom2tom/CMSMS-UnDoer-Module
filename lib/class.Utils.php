@@ -141,6 +141,54 @@ WHERE row_num > ?';
         return null;
     }
 
+    /**
+     * Get a regex, derived from the supplied $needle, and which is
+     * suitable for fuzzy matching
+     * Adapted from https://codereview.stackexchange.com/questions/23899/faster-javascript-fuzzy-string-matching-function
+     * via AdminSearch module Base slave class
+     *
+     * @param string $needle the raw search string
+     * @param bool $casesensitive optional flag whether to setup for case-sensitive matching. Default true
+     * @return string regular expression
+     */
+    public function get_regex_pattern($needle, $casesensitive = true)//: string
+    {
+        $reserved = '/\\^-]'; // intra-class reserves
+        $reserved2 = '/\\.,+-*?^$[](){}'; // extra-class reserves
+        //UTF-8 has single bytes (0-127), leading bytes (192-254) and continuation bytes (128-191)
+        if (preg_match('/[\xc0-\xfe][\x80-\xbf]+/', $needle)) {
+            $chars = preg_split('//u', $needle, null, PREG_SPLIT_NO_EMPTY);
+            $tail = '/u';
+        } else {
+            $chars = str_split($needle);
+            $tail = '/';
+        }
+        if (!$casesensitive) {
+            $tail .= 'i';
+        }
+        $c = $chars[0];
+        if (strpos($reserved2, $c) !== false) {
+            $c = "\\$c";
+        }
+        $t = "/$c";
+        unset($chars[0]);
+        $patn = array_reduce($chars, function($m, $c) use ($reserved, $reserved2) {
+            $a = strpos($reserved, $c) !== false;
+            $b = strpos($reserved2, $c) !== false;
+            if ($a && $b) {
+                return $m . "[^\\$c]{0,3}\\$c";
+            } elseif ($a) {
+                return $m . "[^\\$c]{0,3}$c";
+            } elseif ($b) {
+                return $m . "[^$c]{0,3}\\$c";
+            } else {
+                return $m . "[^$c]{0,3}$c";
+            }
+        }, $t);
+        $patn .= $tail;
+        return $patn;
+    }
+
     public static function DisplayErrorPage($message = '')
     {
         $mod = cms_utils::get_module('UnDoer');
