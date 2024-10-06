@@ -43,40 +43,57 @@ final class RevisionSearch_slave extends AdminSearch_slave
     public function get_matches()
     {
         $mod = cms_utils::get_module('UnDoer');
-        if (!is_object($mod)) { return []; } // should never happen
-//      $userid = get_userid();
-        //TODO
-        //if $this->search_descriptions()
-        //if $this->search_casesensitive()
-        //if $this->show_snippets()
-        //if $this->include_inactive_items()
-        //protected function generate_snippets($content){}
-        $all = $this->include_inactive_items();
         $output = [];
         $sql = 'SELECT id,item_id,item_type,item_subtype,item_name,revision_number,archive_content FROM '.
             CMS_DB_PREFIX.'module_undoer ORDER BY item_name,revision_number';
         $db = CmsApp::get_instance()->GetDb();
         $dbr = $db->GetArray($sql);
         if ($dbr && is_array($dbr)) {
-            $needle = $this->get_text();
+            $needle = $this->get_text(); //TODO if want fuzzy match
+            $desc = $this->search_descriptions();
             foreach ($dbr as $row) {
-                $restore = Utils::retrieveSerializedObject($row['item_id'], $row['revision_number']); //unpack $row['archive_content']
                 switch ($row['item_type']) {
                     case UnDoer::TYPE_CONTENT:
-                        $props = [];//get relevant $restore properties
+                        $restore = Utils::retrieveSerializedObject($row['item_id'], $row['revision_number']); // unpack $row['archive_content'] with type-class pre-processing
+                        if (!$restore) { break 2; /*TODO handle error*/}
+//irrelevant here       $all = $this->include_inactive_items();
+                         //TODO other content-like extras e.g. Sidebar ?
+                        $props = [
+                         'name' => $restore->Name(),
+                         'menu' => $restore->MenuText(),
+                         'alias' => $restore->Alias(),
+                         'title' => '',
+                         'content' => $restore->GetPropertyValue('content_en')
+                        ];
+                        if ($desc) { $props['title'] = $restore->TitleAttribute(); } else { unset($props['title']); }
                         break;
                     case UnDoer::TYPE_STYLESHEET:
-                        $props = [];
+                        $restore = unserialize($row['archive_content']); //['allowed_classes' => true OR whatever]
+                        if (!$restore) { break 2; /*TODO handle error*/}
+                        $props = [
+                         'name' => $restore->get_name(),
+                         'description' => '',
+                         'content' => $restore->get_content()
+                        ];
+                        if ($desc) { $props['description'] = $restore->get_description(); } else { unset($props['description']); }
                         break;
                     case UnDoer::TYPE_TEMPLATE:
-                        $props = [];
+                        $restore = unserialize($row['archive_content']); //['allowed_classes' => true OR whatever]
+                        if (!$restore) { break 2; /*TODO handle error*/}
+                        $props = [
+                         'name' => $restore->get_name(),
+                         'description' => '',
+                         'content' => $restore->get_content()
+                        ];
+                        if ($desc) { $props['description'] = $restore->get_description(); } else { unset($props['description']); }
                         break;
                     default:
                         break 2;
                 }
                 foreach ($props as $name => $value) {
                     if ($this->check_match($value, $needle)) {
-                        $res = $this->get_match_info($value, $mod);
+                        $label = lang($name);
+                        $res = $this->get_match_info($value, $row, $label, $mod);
                         $output[] = json_encode($res);
                     }
                 }
@@ -87,7 +104,7 @@ final class RevisionSearch_slave extends AdminSearch_slave
 
     private function check_match($propval, $needle)
     {
-        //TODO where is fuzzy matching done?
+        //TODO confirm fuzzy matching handled in ancestor class (for CMSMS3)
         static $findfunc = null;
         if ($findfunc === null) {
             $findfunc = $this->search_casesensitive() ? 'strpos' : 'stripos'; // too bad if UTF8 char(s) in there with stripos!
@@ -95,17 +112,22 @@ final class RevisionSearch_slave extends AdminSearch_slave
         return ($findfunc($propval, $needle) !== false);
     }
 
-    private function get_match_info($propval, $id, $mod)
+    private function get_match_info($propval, $row, $label, $mod)
     {
-        //TODO action url paths like &__c=1aa7a9f08c429ed1a94&m1_rev_id=38&m1_start=0&m1_type_filter=-1&m1_type_id=4&m1_sort_order=name&m1_item_id=10&m1_preview=1
-        $resultSet = $this->get_resultset($propval, '',
-            $mod->create_url('m1_', 'preview', '', ['gid'=>$id]));
-        $from = $propval;
-        $num = $this->get_number_of_occurrences($from);
+        $resultSet = $this->get_resultset($row['item_name'].' : '.$row['revision_number'], '',
+            $mod->create_url('m1_', 'preview', '', [
+            'rev_id' => $row['id'],
+            'type_id' => $row['item_type'],
+            'item_id' => $row['item_id'],
+            'start' => 0, //dummy value
+            'sort_order' => '',
+            'type_filter' => -1
+        ]));
+        $num = $this->get_number_of_occurrences($propval);
         if ($num > 0) {
             $resultSet->count += $num;
             if ($this->show_snippets()) {
-                $resultSet->locations[lang('name')] = $this->generate_snippets($from);
+                $resultSet->locations[$label] = $this->generate_snippets($propval);
             }
         }
         return $resultSet;
