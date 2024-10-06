@@ -39,8 +39,7 @@ switch ($params['type_id']) {
         break;
     case UnDoer::TYPE_STYLESHEET:
     case UnDoer::TYPE_TEMPLATE:
-        // OR json_decode()
-        $restore = unserialize($row['archive_content'], ['allowed_classes' => true]); //TODO type-specific class e.g. ContentManager\contenttypes\Content
+        $restore = unserialize($row['archive_content'], ['allowed_classes' => true]); //TODO type-specific class e.g. CmsLayoutTemplate
         if (!$restore) {
             //TODO handle error
             $X = $CRASH;

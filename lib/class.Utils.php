@@ -48,8 +48,7 @@ class Utils
             case UnDoer::TYPE_TEMPLATE:
                 $objectName = $object->get_name();
         }
-        // OR json_encode()
-        $flat = serialize($object); // ancestor modules/versions stored a base64 encoded md5 hashed format
+        $flat = serialize($object);
         $hash = sha1($flat);
         $query = 'SELECT item_hash, revision_number FROM '.CMS_DB_PREFIX.
             'module_undoer WHERE item_id=? AND item_type=? ORDER BY archive_date DESC';
@@ -134,7 +133,6 @@ WHERE row_num > ?';
 //            } elseif ($row['item_type'] == UnDoer::TYPE_TEMPLATE) {
                 //CmsLayoutTemlate::load($id);//TODO process $row
             }
-            // OR json_decode()
             $restore = unserialize($row['archive_content'], ['allowed_classes' => true]); //TODO type-specific class e.g. ContentManager\contenttypes\Content
             return $restore;
         }
