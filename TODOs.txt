@@ -4,12 +4,12 @@ Reconciliation by item id, not item name (which may be changed)
 Restoration in accord with item locking (per content manager etc)
 Filtering like corresponding content-editing etc plus by revision date
 Option to display only a single version of items (presumably the most-recently-recorded)
-Content searching
-  search slave and/or direct searching via revisions list view
-Versions-diff action/view c.f. git logging etc
-Unserialize() with class-limit param (Note classnames can be CMSMS-version specific)
-
+Option to limit to 2 retained versions
 Polling to refresh, like content list
-
 Manual delete all by type
 Manual delete all by filter
+
+PROBABLE CHANGES
+Versions-diff action/view c.f. git logging etc
+Content searching via revisions list view c.f. search slave
+Unserialize() with class-limit param (Note classnames can be CMSMS-version specific)
