@@ -114,7 +114,7 @@ final class RevisionSearch_slave extends AdminSearch_slave
 
     private function get_match_info($propval, $row, $label, $mod)
     {
-        $resultSet = $this->get_resultset($row['item_name'].' : '.$row['revision_number'], '',
+        $resultSet = $this->get_resultset($row['item_name'].' @ '.$row['revision_number'], '',
             $mod->create_url('m1_', 'preview', '', [
             'rev_id' => $row['id'],
             'type_id' => $row['item_type'],
