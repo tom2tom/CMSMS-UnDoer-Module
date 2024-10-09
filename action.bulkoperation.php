@@ -28,20 +28,33 @@ switch ($params['bulkoperation']) {
     case 'search':
         if (!$this->CheckPermission('Manage Restores')) return;
         if ($n > 0) {
-            //TODO [redirect to ]display fuzzy matches for $params['search_text'] in $sels revisions
-            //c.f. AdminSearch slave etc
+            $target = $params['search_text'];
+            $parms = $this->FilterParms($params);
+            $parms['search_text'] = $target;
+            $parms['sels'] = $sels;
+            $this->Redirect($id, 'search', $returnid, $parms);
         }
-    break;
+        break;
     case 'compare':
         if (!$this->CheckPermission('Manage Restores')) return;
         if ($n > 1) {
             $r1 = reset($sels);
             $r2 = next($sels);
-            $data = $db->getArray('SELECT id,item_id,item_type,item_name,revision_number,archive_date,archive_content FROM '.CMS_DB_PREFIX."module_undoer WHERE id IN ($r1,$r2)");
-            //fail if their types differ
-            //TODO [redirect to ]display diff between $r1, $r2
+            $data = $db->getCol('SELECT item_type FROM '.CMS_DB_PREFIX."module_undoer WHERE id IN ($r1,$r2)");
+            if (!$data || count($data) != 2) {
+                $this->SetError('TODO internal error');
+                $this->Redirect($id, 'defaultadmin', $returnid, $this->FilterParms($params));
+            } elseif ($data[0] != $data[1]) {
+                $this->SetError('TODO not same types');
+                $this->Redirect($id, 'defaultadmin', $returnid, $this->FilterParms($params));
+            }
+            $parms = $this->FilterParms($params);
+            $parms['match1'] = $r1;
+            $parms['match2'] = $r2;
+            $this->Redirect($id, 'diff', $returnid, $parms);
         }
-    break;
+        //TODO consider: n == 1 does compare with current
+        break;
     case 'delete':
         if (!$this->CheckPermission('Delete Restores')) return;
         if ($n > 0) {
