@@ -294,14 +294,15 @@ $tpl->assign('input_filter_type',
     )
 );
 
-// escape strings for js
-$s1 = addcslashes($this->Lang('suredelete_multi'), "'\n\r");
-$s2 = addcslashes(lang('ok'), "'\n\r");
-$s3 = addcslashes(lang('cancel'), "'\n\r");
-$s4 = addcslashes($this->Lang('begin'), "'\n\r");
-$s5 = addcslashes($this->Lang('error_compare'), "'\n\r");
+if ($entryarray) {
+    // escape strings for js
+    $s1 = addcslashes($this->Lang('suredelete_multi'), "'\n\r");
+    $s2 = addcslashes(lang('ok'), "'\n\r");
+    $s3 = addcslashes(lang('cancel'), "'\n\r");
+    $s4 = addcslashes($this->Lang('begin'), "'\n\r");
+    $s5 = addcslashes($this->Lang('error_compare'), "'\n\r");
 
-$js = <<<EOS
+    $js = <<<EOS
 <script>
   $(function() {
     var lastClicked = null; // TODO OR -1
@@ -428,10 +429,11 @@ $js = <<<EOS
 </script>
 
 EOS;
-$cmsmsv3 = cmsversion_compare(CMS_VERSION, '2.900') >= 0;
-if ($cmsmsv3) {
-    add_bottom_content($js); // CMSMS 3 inject js at bottom
-}
+    $cmsmsv3 = cmsversion_compare(CMS_VERSION, '2.900') >= 0;
+    if ($cmsmsv3) {
+        add_bottom_content($js); // CMSMS 3 inject js at bottom
+    }
+} // $entryarray
 
 //TODO filter-form elements needed if ! hide_filters
 //$tpl->assign('endform', $this->CreateFormEnd());
@@ -440,11 +442,11 @@ if ($cmsmsv3) {
 $html = $this->CreateFormStart($id, 'bulkoperation', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order'], 'sort_dir' => $params['sort_dir'], 'search_text' => '']);
 $html2 = preg_replace('/id="\w+?"/', 'id="bulk_form"', $html);
 $tpl->assign('startbulkform', $html2);
-//TODO custom hidden inputs for form id="multi_delete" if different from above
-$html = $this->CreateFormStart($id, 'bulkoperation', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order']]);
+// hidden inputs for form id="multi_delete" different from above
+$html = $this->CreateFormStart($id, 'bulkoperation', $returnid, 'post', '', false, '', ['start' => $params['start'], 'sort_order' => $params['sort_order'], 'sort_dir' => $params['sort_dir']]);
 $html2 = preg_replace('/id="\w+?"/', 'id="multi_delete"', $html);
 $tpl->assign('startbulkform2', $html2);
-//TODO custom hidden inputs for form id="multi_search" if different from above
+// hidden inputs for form id="multi_search" as for "multi_delete"
 $html2 = preg_replace('/id="\w+?"/', 'id="multi_search"', $html);
 $tpl->assign('startbulkform3', $html2);
 
@@ -486,6 +488,6 @@ $this->CreateLink($id, 'settings', $returnid, $this->Lang('adminprefs'), [], '',
 $smarty->assign('admin_nav', $nav);
 
 $tpl->display();
-if (!$cmsmsv3) {
+if ($entryarray && empty($cmsmsv3)) {
     echo $js;
 }
