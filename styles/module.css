@@ -57,7 +57,17 @@
     overflow: auto;
 }
 
-#previewframe, 
+#searchresults {
+    max-height: 25em; /* OR e.g. calc(100vh - 25em); */
+    overflow: auto;
+}
+
+/*.snippets */
+.search_match {
+    color: #f00;
+}
+
+#previewframe,
 iframe.preview {
     height: calc(100vh - 5em);
 }
