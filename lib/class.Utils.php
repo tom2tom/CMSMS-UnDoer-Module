@@ -143,7 +143,6 @@ WHERE row_num > ?';
      * Get a regex derived from the supplied $needle, and which is
      * suitable for fuzzy matching
      * Adapted from https://codereview.stackexchange.com/questions/23899/faster-javascript-fuzzy-string-matching-function
-     * via CMSMS3 AdminSearch module Base slave class
      *
      * @param string $needle the raw search string
      * @param bool $casesensitive optional flag whether to setup for case-sensitive matching. Default true
