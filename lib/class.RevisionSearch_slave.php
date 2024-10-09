@@ -44,7 +44,7 @@ final class RevisionSearch_slave extends AdminSearch_slave
     {
         $mod = cms_utils::get_module('UnDoer');
         $output = [];
-        $sql = 'SELECT id,item_id,item_type,item_subtype,item_name,revision_number,archive_content FROM '.
+        $sql = 'SELECT id,item_id,item_type,item_name,revision_number,archive_content FROM '.
             CMS_DB_PREFIX.'module_undoer ORDER BY item_name,revision_number';
         $db = CmsApp::get_instance()->GetDb();
         $dbr = $db->GetArray($sql);
