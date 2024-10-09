@@ -32,6 +32,7 @@ $lang[ 'lbl_revision_search'] = 'Search Archived Revisions';
 $lang['moddescription'] = 'Archive and restore Content, Style Sheets and Templates';
 
 $lang['next'] = 'Next Page &gt;';
+$lang['no_match'] = 'No revision includes the wanted \'%s\'.';
 $lang['no_revision'] = 'No revision is recorded.';
 
 $lang['page'] = 'Page';
@@ -138,9 +139,7 @@ $lang['help'] = '<h3>What Does This Do?</h3>
 <P>Restore an item by clicking on the "restore" icon on the far right. That\'s all there is to it!</p>
 <h3>Possible Improvements</h3>
 <ul>
-<li>Preview of Templates?</li>
-<li>Snapshots (i.e. archives of the exact state of the entire website at some instant in time)?</li>
-<li>Better/more efficient storage? Store deltas?</li>
+<li>Snapshots (i.e. archives of the exact state of the entire website at the particular instant in time)?</li>
 </ul>
 <h3>Features That Might Be Misinterpreted as Bugs</h3>
 <ul>
@@ -148,9 +147,11 @@ $lang['help'] = '<h3>What Does This Do?</h3>
 <li>If the name of an item is changed, the item will show up under both names in the Archive view. Clicking on either name will show you all revisions of that page, without regard to the name.</li>
 </ul>
 <h3>Support</h3>
-<p>For the latest version of this module, or to file a Bug Report, please visit the <a href="http://dev.cmsmadesimple.org/projects/archiver">CMSMS Forge project</a>.</p>
-<p>Discussion of this module may also be found in the <a href="http://forum.cmsmadesimple.org">CMSMS Forums</a> and/or on the <a href="https://www.cmsmadesimple.org/support/documentation/chat" target="_blank">CMSMS Slack channel</a>.</p>
+<p>For the latest version of this module, or to file a Bug Report or Feature Request, please visit the <a href="http://dev.cmsmadesimple.org/projects/undoer" target="_blank">CMSMS Forge project</a>.</p>
+<p>Discussion of this module may also be found in the <a href="http://forum.cmsmadesimple.org" target="_blank">CMSMS Forums</a> and/or
+ on the <a href="https://cms-made-simple.slack.com" target="_blank">CMSMS Slack channel</a>.
+ <a href="https://www.cmsmadesimple.org/support/documentation/chat" target="_blank">Join CMSMS on Slack</a></p>
 <p>As per the GPL, this software is provided as-is. Please read the text of that license for the full disclaimer.</p>
 <h3>Copyright and License</h3>
 <p>Copyright &copy; 2024 CMS Made Simple Foundation Inc &lt;foundation@cmsmadesimple.org&gt;. All rights reserved.</p>
-<p>This module has been released under the <a href="http://www.gnu.org/licenses/licenses.html#GPL">GNU General Public License</a>. This module may not be distributed or used otherwise than in accordance with that license.';
+<p>This module has been released under the <a href="http://www.gnu.org/licenses/licenses.html#GPL" target="_blank">GNU General Public License</a>. This module may not be distributed or used otherwise than in accordance with that license.';
