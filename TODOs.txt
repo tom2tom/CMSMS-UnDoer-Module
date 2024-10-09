@@ -11,5 +11,4 @@ Manual delete all by filter
 
 PROBABLE CHANGES
 Versions-diff action/view c.f. git logging etc
-Content searching via revisions list view c.f. search slave
 Unserialize() with class-limit param (Note classnames can be CMSMS-version specific)
